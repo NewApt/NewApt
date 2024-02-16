@@ -11,7 +11,7 @@ from tqdm import tqdm
 from newapt.utils import NEWAPT_SOURCES, RED, YELLOW, BLUE, GREEN, ask, shell, dprint
 from newapt.options import arg_parse
 
-netselect_scored = [] 
+netselect_scored = []
 
 parser = arg_parse()
 arguments = parser.parse_args()
@@ -40,6 +40,7 @@ def ping(addr, timeout=2, number=1, data=b''):
 
 def net_select(host):
 	try:
+		# Regex to get the domain
 		dprint(host)
 		
 		regex = re.search('https?://([A-Za-z_0-9.-]+).*', host)
@@ -85,9 +86,11 @@ def parse_ubuntu(country: list=None):
 				for mirror in section.split('<tr>'):
 					for line in mirror.splitlines():
 						if '"http://' in line and '">http</a>' in line:
+							# It matched so we now we strip off everything before and after the quotes
 							line = line[line.index('"')+1:]
 							line = line[:line.index('"')]
 							mirror_list.append(line)
+	# Convert to set to remove any duplicates
 	mirror_list = set(mirror_list)
 	return list(mirror_list)
 
@@ -119,9 +122,11 @@ def parse_debian(country: list=None):
 								for line in line.split():
 									match = re.match(".*(http\S+)", line)
 									if match:
+										# It matched so we now we strip off everything before and after the quotes
 										line = line[line.index('"')+1:]
 										line = line[:line.index('"')]
 										mirror_list.append(line)
+	# Convert to set to remove any duplicates
 	mirror_list = set(mirror_list)
 	return list(mirror_list)
 
@@ -153,16 +158,19 @@ def detect_release():
 def fetch(	fetches: int, foss: bool = False,
 			debian=None, ubuntu=None, country=None,
 			assume_yes=False):
+	"""Fetches fast mirrors and write to newapt-sources.list"""
 	if NEWAPT_SOURCES.exists():
 		if not assume_yes:
 			if not ask(f'{NEWAPT_SOURCES.name} already exists.\ncontinue and overwrite it'):
 				print('Abort')
 				exit()
 
+	# Make sure there aren't any shenanigans
 	if fetches not in range(1,11):
 		print('Amount of fetches has to be 1-10...')
 		exit(1)
 
+	# If supplied a country it needs to be a list
 	if country:
 		country = [country]
 
@@ -185,6 +193,7 @@ def fetch(	fetches: int, foss: bool = False,
 			component = 'main'
 	else:
 		netselect = parse_ubuntu(country)
+		# It's ubuntu, you probably don't care about foss
 		component = 'main restricted universe multiverse'
 
 	dprint(netselect)
@@ -198,6 +207,7 @@ def fetch(	fetches: int, foss: bool = False,
 		thread_handler.append(thread)
 		thread.start()
 
+	# wait for all our threads to stop
 	for thread in tqdm(
 		thread_handler, 
 		colour='CYAN',
