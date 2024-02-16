@@ -3,19 +3,19 @@ from sys import argv
 from pydoc import pager
 from pathlib import Path
 
-from nala.utils import LICENSE
-from nala import __version__
+from newapt.utils import LICENSE
+from newapt import __version__
 
 # Custom Parser for printing help on error.
-class nalaParser(argparse.ArgumentParser):
+class newaptParser(argparse.ArgumentParser):
 	def error(self, message):
 		#stderr.write('error: %s\n' % message)
 		self.print_help()
 		exit(1)
 
 # Subclassing the HelpFormatter just to fix an empty line from setting metavar=''
-class nalaFormatter(argparse.RawDescriptionHelpFormatter):
-#class nalaFormatter(argparse.HelpFormatter):
+class newaptFormatter(argparse.RawDescriptionHelpFormatter):
+#class newaptFormatter(argparse.HelpFormatter):
 	def format_help(self):
 		help = self._root_section.format_help()
 		if help:
@@ -51,7 +51,7 @@ class GPLv3(argparse.Action):
 				pager(file.read())
 		else:
 			print('It seems the system has no license file')
-			print('Nala is licensed under the GPLv3')
+			print('NewApt is licensed under the GPLv3')
 			print('https://www.gnu.org/licenses/gpl-3.0.txt')
 		parser.exit()
 
@@ -71,14 +71,14 @@ def remove_options(parser, yes=True, download=True, update=True):
 # Main Parser
 def arg_parse():
 
-	formatter = lambda prog: nalaFormatter(prog, max_help_position=64)
+	formatter = lambda prog: newaptFormatter(prog, max_help_position=64)
 
 	bin_name = Path(argv[0]).name
 
 	version = __version__
 
 	# Define global options to be given to subparsers
-	global_options = nalaParser(add_help=False)
+	global_options = newaptParser(add_help=False)
 	global_options.add_argument('-y', '--assume-yes', action='store_true', help="assume 'yes' to all prompts and run non-interactively.")
 	global_options.add_argument('-d', '--download-only', action='store_true', help="package files are only retrieved, not unpacked or installed")
 	global_options.add_argument('-v', '--verbose', action='store_true', help='Logs extra information for debugging')
@@ -87,7 +87,7 @@ def arg_parse():
 	global_options.add_argument('--version', action='version', version=f'{bin_name} {version}')
 	global_options.add_argument('--license', action=GPLv3)
 
-	parser = nalaParser(	formatter_class=formatter,
+	parser = newaptParser(	formatter_class=formatter,
 							usage=f'{bin_name} [--options] <command>',
 							parents=[global_options]
 							)
@@ -127,7 +127,7 @@ def arg_parse():
 
 	# We specify the options as a parent parser first just so we can easily move them above the global options inside the subparser help.
 	# If there is a better way of doing this please let me know
-	update_options = nalaParser(add_help=False)
+	update_options = newaptParser(add_help=False)
 	update_options.add_argument('--no-full', action='store_false', help="R|runs a normal upgrade instead of full-upgrade\n\n")
 
 	# Parser for the update/upgrade command
@@ -148,7 +148,7 @@ def arg_parse():
 	upgrade_parser._optionals.title = "options"
 
 	# We do the same thing that we did with update options
-	fetch_options = nalaParser(add_help=False)
+	fetch_options = newaptParser(add_help=False)
 	fetch_options.add_argument('--fetches', metavar='number', type=int, default=3, help="number of mirrors to fetch")
 	fetch_options.add_argument('--debian', metavar='sid', help="choose the Debian release")
 	fetch_options.add_argument('--ubuntu', metavar='jammy', help="choose an Ubuntu release")
@@ -159,7 +159,7 @@ def arg_parse():
 	fetch_parser = subparsers.add_parser('fetch',
 		formatter_class=formatter,
 		description=(
-		'nala will fetch mirrors with the lowest latency.\n'
+		'NewApt will fetch mirrors with the lowest latency.\n'
 		'for Debian https://www.debian.org/mirror/list-full\n'
 		'for Ubuntu https://launchpad.net/ubuntu/+archivemirrors'
 		),
@@ -216,7 +216,7 @@ def arg_parse():
 
 	# This is just moo, but we can't cause are cat
 	moo_parser = subparsers.add_parser('moo',
-		description='nala is unfortunately unable to moo',
+		description='NewApt is unfortunately unable to moo',
 		parents=[global_options],
 		usage=f'{bin_name} moo [--options]'
 	)
